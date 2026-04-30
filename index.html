@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>TaskFlow – To-Do App</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <!-- AUTH SCREEN -->
+  <div id="authScreen" class="auth-screen">
+    <div class="auth-card">
+      <div class="auth-logo">✓</div>
+      <h1 class="auth-title">TaskFlow</h1>
+      <p class="auth-sub">Your smart productivity companion</p>
+
+      <div class="tab-row">
+        <button class="tab-btn active" id="tabLogin" onclick="switchTab('login')">Sign In</button>
+        <button class="tab-btn" id="tabSignup" onclick="switchTab('signup')">Sign Up</button>
+      </div>
+
+      <form id="authForm" onsubmit="handleAuth(event)">
+        <div class="form-group" id="nameGroup" style="display:none">
+          <label>Full Name</label>
+          <input type="text" id="authName" placeholder="John Doe"/>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="authEmail" placeholder="you@example.com" required/>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="authPassword" placeholder="••••••••" required minlength="6"/>
+        </div>
+        <button type="submit" class="btn-primary full" id="authSubmit">Sign In</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- APP SCREEN -->
+  <div id="appScreen" class="app-screen" style="display:none">
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+      <div class="nav-brand"><span class="brand-icon">✓</span> TaskFlow</div>
+      <div class="nav-right">
+        <div class="streak-badge" id="streakBadge" style="display:none">🔥 <span id="streakCount">0</span> day streak</div>
+        <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+        <div class="user-avatar" id="userAvatar"></div>
+        <span class="user-name" id="userName"></span>
+        <button class="btn-ghost logout-btn" onclick="logout()">Sign out</button>
+      </div>
+    </nav>
+
+    <main class="main">
+
+      <!-- STATS BAR -->
+      <div class="stats-card" id="statsCard">
+        <div class="stats-top">
+          <div>
+            <h2 class="greeting" id="greeting"></h2>
+            <p class="greeting-sub" id="greetingSub"></p>
+          </div>
+          <div class="pct-display">
+            <span class="pct-num" id="pctNum">0%</span>
+            <span class="pct-lbl">completed</span>
+          </div>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="stat-chips">
+          <div class="stat-chip"><span class="chip-val" id="statTotal">0</span><span class="chip-lbl">Total</span></div>
+          <div class="stat-chip green"><span class="chip-val" id="statDone">0</span><span class="chip-lbl">Done</span></div>
+          <div class="stat-chip amber"><span class="chip-val" id="statPending">0</span><span class="chip-lbl">Pending</span></div>
+          <div class="stat-chip red"><span class="chip-val" id="statOverdue">0</span><span class="chip-lbl">Overdue</span></div>
+        </div>
+      </div>
+
+      <!-- FILTERS -->
+      <div class="filters-card">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" class="search-input" placeholder="Search tasks…" oninput="renderTasks()"/>
+        </div>
+        <div class="filter-row">
+          <div class="cat-pills" id="catPills">
+            <button class="fpill active" data-cat="all" onclick="setCat(this)">🌐 All</button>
+            <button class="fpill" data-cat="work" onclick="setCat(this)">💼 Work</button>
+            <button class="fpill" data-cat="personal" onclick="setCat(this)">🏠 Personal</button>
+            <button class="fpill" data-cat="study" onclick="setCat(this)">📚 Study</button>
+            <button class="fpill" data-cat="health" onclick="setCat(this)">💪 Health</button>
+            <button class="fpill" data-cat="other" onclick="setCat(this)">📌 Other</button>
+          </div>
+          <div class="selects-row">
+            <select id="filterPriority" class="sel" onchange="renderTasks()">
+              <option value="all">All Priorities</option>
+              <option value="high">🔴 High</option>
+              <option value="medium">🟡 Medium</option>
+              <option value="low">🟢 Low</option>
+            </select>
+            <select id="filterStatus" class="sel" onchange="renderTasks()">
+              <option value="all">All Tasks</option>
+              <option value="pending">Pending</option>
+              <option value="done">Completed</option>
+            </select>
+            <select id="filterSort" class="sel" onchange="renderTasks()">
+              <option value="newest">Newest</option>
+              <option value="priority">By Priority</option>
+              <option value="dueDate">By Due Date</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADD TASK BUTTON -->
+      <button class="btn-primary full add-btn" onclick="openModal()">＋ Add New Task</button>
+
+      <!-- TASK LIST -->
+      <div id="taskList"></div>
+
+    </main>
+  </div>
+
+  <!-- TASK MODAL -->
+  <div class="modal-overlay" id="taskModal" onclick="closeModalOutside(event)">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalTitle">New Task</h3>
+        <button class="icon-btn" onclick="closeModal()">✕</button>
+      </div>
+      <form onsubmit="saveTask(event)">
+        <div class="form-group">
+          <label>Task Title *</label>
+          <input type="text" id="taskTitle" placeholder="What needs to be done?" required/>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="taskDesc" placeholder="Optional details…" rows="2"></textarea>
+        </div>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Priority</label>
+            <div class="pri-btns" id="priBtns">
+              <button type="button" class="pri-btn" data-p="low" onclick="setPri(this)">Low</button>
+              <button type="button" class="pri-btn active-medium" data-p="medium" onclick="setPri(this)">Medium</button>
+              <button type="button" class="pri-btn" data-p="high" onclick="setPri(this)">High</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Due Date</label>
+            <input type="date" id="taskDue"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <div class="cat-btns" id="catBtns">
+            <button type="button" class="cat-btn active" data-c="personal" onclick="setCatBtn(this)">🏠 Personal</button>
+            <button type="button" class="cat-btn" data-c="work" onclick="setCatBtn(this)">💼 Work</button>
+            <button type="button" class="cat-btn" data-c="study" onclick="setCatBtn(this)">📚 Study</button>
+            <button type="button" class="cat-btn" data-c="health" onclick="setCatBtn(this)">💪 Health</button>
+            <button type="button" class="cat-btn" data-c="other" onclick="setCatBtn(this)">📌 Other</button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-ghost" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn-primary" id="modalSaveBtn">Add Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toastContainer"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
